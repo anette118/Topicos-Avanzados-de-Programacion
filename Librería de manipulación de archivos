@@ -1,0 +1,122 @@
+import os
+import json
+import tkinter as tk
+from tkinter import filedialog, messagebox
+
+class FileManager:
+    @staticmethod
+    def open_file(filepath):
+        """Abre un archivo y devuelve su contenido."""
+        try:
+            with open(filepath, 'r', encoding='utf-8') as file:
+                return file.read()
+        except FileNotFoundError:
+            return "Error: El archivo no existe."
+        except Exception as e:
+            return f"Error: {e}"
+
+    @staticmethod
+    def save_file(filepath, content):
+        """Guarda contenido en un archivo (crea o sobrescribe)."""
+        try:
+            with open(filepath, 'w', encoding='utf-8') as file:
+                file.write(content)
+            return "Archivo guardado exitosamente."
+        except Exception as e:
+            return f"Error: {e}"
+
+    @staticmethod
+    def edit_file(filepath, new_content):
+        """Edita el contenido de un archivo existente."""
+        if not os.path.exists(filepath):
+            return "Error: El archivo no existe."
+        return FileManager.save_file(filepath, new_content)
+
+    @staticmethod
+    def delete_file(filepath):
+        """Elimina un archivo."""
+        try:
+            os.remove(filepath)
+            return "Archivo eliminado exitosamente."
+        except FileNotFoundError:
+            return "Error: El archivo no existe."
+        except Exception as e:
+            return f"Error: {e}"
+    
+    @staticmethod
+    def open_json(filepath):
+        """Abre un archivo JSON y devuelve su contenido como un diccionario."""
+        try:
+            with open(filepath, 'r', encoding='utf-8') as file:
+                return json.load(file)
+        except FileNotFoundError:
+            return "Error: El archivo no existe."
+        except json.JSONDecodeError:
+            return "Error: El archivo no es un JSON válido."
+        except Exception as e:
+            return f"Error: {e}"
+    
+    @staticmethod
+    def save_json(filepath, data):
+        """Guarda un diccionario en un archivo JSON."""
+        try:
+            with open(filepath, 'w', encoding='utf-8') as file:
+                json.dump(data, file, indent=4)
+            return "Archivo JSON guardado exitosamente."
+        except Exception as e:
+            return f"Error: {e}"
+    
+    @staticmethod
+    def edit_json(filepath, new_data):
+        """Edita el contenido de un archivo JSON existente."""
+        if not os.path.exists(filepath):
+            return "Error: El archivo no existe."
+        return FileManager.save_json(filepath, new_data)
+
+class FileManagerApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("File Manager")
+        
+        self.text_area = tk.Text(root, wrap='word', height=20, width=50)
+        self.text_area.pack(padx=10, pady=10)
+        
+        self.btn_open = tk.Button(root, text="Abrir Archivo", command=self.open_file)
+        self.btn_open.pack(fill='x')
+        
+        self.btn_save = tk.Button(root, text="Guardar Archivo", command=self.save_file)
+        self.btn_save.pack(fill='x')
+        
+        self.btn_delete = tk.Button(root, text="Eliminar Archivo", command=self.delete_file)
+        self.btn_delete.pack(fill='x')
+        
+        self.filepath = None
+    
+    def open_file(self):
+        self.filepath = filedialog.askopenfilename()
+        if self.filepath:
+            content = FileManager.open_file(self.filepath)
+            self.text_area.delete(1.0, tk.END)
+            self.text_area.insert(tk.END, content)
+    
+    def save_file(self):
+        if not self.filepath:
+            self.filepath = filedialog.asksaveasfilename()
+        if self.filepath:
+            content = self.text_area.get(1.0, tk.END)
+            message = FileManager.save_file(self.filepath, content)
+            messagebox.showinfo("Guardar Archivo", message)
+    
+    def delete_file(self):
+        if self.filepath:
+            confirmation = messagebox.askyesno("Eliminar Archivo", "¿Estás seguro de que quieres eliminar este archivo?")
+            if confirmation:
+                message = FileManager.delete_file(self.filepath)
+                messagebox.showinfo("Eliminar Archivo", message)
+                self.text_area.delete(1.0, tk.END)
+                self.filepath = None
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = FileManagerApp(root)
+    root.mainloop()
